@@ -6,21 +6,21 @@ import Login from './Login'
 import { useState } from 'react'
 
 
-const Navbar = () => {
+const Navbar = (props) => {
 
     const [loginPop,setLogInPop] = useState(false);
 
   return (
     <>
-    <div className='flex p-4' >
+    <div className='flex p-4 bg-slate-100 shadow-md' >
       <img className='w-9 h-9' src={Logo} alt="Olx logo" />
-      <div className='flex border-2 border-spacing-1 w-64 p-2 border-black ml-5'>
+      <div className='flex border-2 border-spacing-1 w-64 p-2 border-black ml-5 bg-white'>
         <img className='w-3 h-3 mt-1' src={Lens} alt="search lens icon" />
-        <input placeholder='Location' className='ml-3'/>
+        <input placeholder='Location' className='ml-3 outline-none'/>
         <img className="w-4 h-4 mt-1" src={down_icon} alt="down arrow icon" />
       </div>
-      <div className='flex h-12 ml-4 border-2 border-black'>
-        <input className='ml-3 w-[720px]' placeholder="Find Cars, Mobile phones and more" type="text" />
+      <div className='flex h-12 ml-4 border-2 border-black bg-white'>
+        <input onChange={(e)=>props.setSearch(e.target.value)} className='ml-3 w-[720px] outline-none' placeholder="Find Cars, Mobile phones and more" type="text" />
         <img src={search_field_icon} alt="search field icon" />
       </div>
       <div className='flex h-12 p-3 ml-10 cursor-pointer'>
