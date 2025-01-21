@@ -3,7 +3,7 @@ import { initializeApp } from "firebase/app";
 import {getAuth, GoogleAuthProvider} from "firebase/auth"
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDY604aHpNxSPdasZVN0OE0Mas0ZpKFO3A",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "olx-clone-react-e8fbd.firebaseapp.com",
   projectId: "olx-clone-react-e8fbd",
   storageBucket: "olx-clone-react-e8fbd.firebasestorage.app",
