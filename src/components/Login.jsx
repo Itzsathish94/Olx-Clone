@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import loginGuitar from '../assets/loginEntryPointPost.webp';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from '../firebase';
-import { setDoc, doc } from "firebase/firestore";  // Import necessary Firestore functions
+import { setDoc, doc } from "firebase/firestore";
+import { toast } from 'react-toastify';
 
 const Login = ({ setLogInPop }) => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -11,35 +12,93 @@ const Login = ({ setLogInPop }) => {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
-  const navigate = useNavigate(); // Hook to redirect after successful login/signup
+  const navigate = useNavigate();
+
+  const validateSignUpInputs = () => {
+    if (!email || !password || !username || !phone) {
+      toast.error('All fields are required for Sign Up');
+      return false;
+    }
+
+    const usernamePattern = /^(?!\s*$)[a-zA-Z0-9]{4,}$/;
+    if (!usernamePattern.test(username)) {
+      toast.error('Username must be at least 4 characters and contain only letters and numbers');
+      return false;
+    }
+
+    const phonePattern = /^[0-9]{10}$/;
+    if (!phonePattern.test(phone)) {
+      toast.error('Please enter a 10 digit phone number');
+      return false;
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) {
+      toast.error('Please enter a valid email address');
+      return false;
+    }
+
+    const passwordPattern = /^(?=.*[!@#$%^&*(),.?":{}|<>]).{6,}$/;
+    if (!passwordPattern.test(password)) {
+      toast.error('Password must be at least 6 characters and include a special character');
+      return false;
+    }
+
+    return true;
+  };
+
+  const validateLogInInputs = () => {
+    if (!email || !password) {
+      toast.error('Email and Password are required');
+      return false;
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) {
+      toast.error('Please enter a valid email address');
+      return false;
+    }
+
+    return true;
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (isSignUp && !validateSignUpInputs()) return;
+    if (!isSignUp && !validateLogInInputs()) return;
+
     try {
       if (isSignUp) {
-        // Handle sign-up logic
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // Store additional user data (username, phone) in Firestore
         await setDoc(doc(db, "users", user.uid), {
           username: username,
           phone: phone,
           email: email,
         });
 
-        alert('Sign Up Successful!');
-        setLogInPop(false); // Close modal after successful sign-up
-        navigate('/'); // Redirect to home after sign-up
+        toast.dark('✔️ Sign Up Successful!');
       } else {
-        // Handle login logic
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        alert('Log In Successful!');
-        setLogInPop(false); // Close modal after successful login
-        navigate('/'); // Redirect to home after login
+        await signInWithEmailAndPassword(auth, email, password);
+        toast.dark('✔️ Log In Successful!');
       }
+
+      setLogInPop(false);
+      navigate('/');
     } catch (error) {
-      alert(error.message); // Display error message
+      const errorCode = error.code;
+
+      if (errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password') {
+        toast.error('Invalid credentials');
+      } else if (errorCode === 'auth/email-already-in-use') {
+        toast.error('Email is already in use');
+      } else if (errorCode === 'auth/invalid-email') {
+        toast.error('Invalid email address');
+      } else {
+        toast.error('Invalid credentials.');
+      }
     }
   };
 
@@ -51,11 +110,11 @@ const Login = ({ setLogInPop }) => {
         <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
           <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:w-[500px] sm:max-w-lg">
             <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-              <h1 onClick={() => setLogInPop(false)} className="font-semibold text-3xl cursor-pointer">X</h1>
+              <h1 onClick={() => setLogInPop(false)} className="font-normal text-2xl cursor-pointer ml-[430px]">X</h1>
               <div className="sm:flex sm:items-start">
                 <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                   <div className="mt-2">
-                    <img src={loginGuitar} className="w-20 h-20 ml-[170px]" alt="guitar" />
+                    <img src={loginGuitar} className="w-22 h-[200px] ml-[130px]" alt="guitar" />
                     <p className="text-base font-medium mt-5 text-center">
                       {isSignUp ? 'Create an account to get started' : 'Help us to become one of the safest places to buy and sell'}
                     </p>
@@ -101,7 +160,7 @@ const Login = ({ setLogInPop }) => {
                       {isSignUp ? 'Sign Up' : 'Log In'}
                     </button>
 
-                    <h1 className="text-center mt-4 cursor-pointer">OR</h1>
+                    <h1 className="text-center mt-4">OR</h1>
                     <h1
                       onClick={() => setIsSignUp(!isSignUp)}
                       className="text-center mt-4 underline cursor-pointer"
